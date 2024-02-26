@@ -38,13 +38,14 @@ let books = [
     title: "Gardens",
     author: "Flora Rita",
     id: "6d594650-3436-11e9-bc57-8b80ba54c431",
+    published: 1993,
     genres: ['art', 'home', 'classic']
   },
   {
     title: "Pie Shell",
     author: "Sam Diego",
     id: "3d594450-6436-11e9-bc57-8b80ba54c431",
-    published: 1992,
+    published: 1994,
     genres:  ['home', 'food', 'art']
   }
 ]
@@ -59,7 +60,7 @@ const typeDefs = `
 
   type Book {
     title: String!
-    author: Author!
+    author: String!
     id: ID!
     genres: [String!]
   }
@@ -67,7 +68,7 @@ const typeDefs = `
   type Query {
     bookCount: Int!
     authorCount : Int!
-    allbooks: [Book!]!
+    allBooks(author: String!): [Book!]!
     allAuthors: [Author!]!
   }
 `
@@ -76,7 +77,7 @@ const resolvers = {
   Query: {
     bookCount: () => books.length,
     authorCount: () => authors.length,
-    allBooks: () => books,
+    allBooks: (root, arg) => books.filter(b => b.author === arg.author),
     allAuthors: () => authors,
   },
   Author: {
