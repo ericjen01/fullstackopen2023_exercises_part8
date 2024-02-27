@@ -485,8 +485,16 @@
 
       Start the server by running node index.js in the terminal
 
+--- 8-a Mutation, UUID, https://github.com/uuidjs/uuid#readme
+      npm install uuid
+      
+      import { v4 as uuidv4 } from 'uuid';
+      uuidv4(); // ⇨ '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
+
+--- 
+
 ---
----
+
 --- 
 
 -----------------------------------------------------------------------
@@ -697,17 +705,19 @@ A non-serializable value was detected in an action, in the path....
           </xxContextProvider>
 
  ---  Invalid hook call. Hooks can only be called inside of the body of a function component 
+      React hook cannot be called at the top level. It must be called in a react function.
       (ex 7 bloglist-reqctquery, loginReq, LoginCtx )
 
         Functions whose names start with use are called Hooks in React.
         Don’t call Hooks inside loops, conditions, or nested functions. Instead, always use Hooks at the top level of your React function, before any early returns. You can only call Hooks while React is rendering a function component:
 
         1. try call all the declared hook in the top-level file, say App.jsx, instead of children files
+            
+              const [... , ... ] = useContext(...)          <- bad. outside of function & at top level
             const App = () => {
-              const dispatch = useDispatch()
-              const [userState, userDisp] = useContext(UserCtx)
-              const [loginState, loginDisp] = useContext(LoginCtx)
-              const [blogState, blogDisp] = useContext(BlogCtx) 
+              const dispatch = useDispatch()                      <-- good
+              const [userState, userDisp] = useContext(UserCtx)   <-- good
+          
 
         2. try move all the hook (useState, useReducer, useContext, useXXX... ) to the very top lines of
             a function. do not leave them outside a function:
