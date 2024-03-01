@@ -1,8 +1,6 @@
 
-const Books = ({show}) => {
+const Books = ({show, books}) => {
   if(!show) return null
-
-  const books = []
 
   return (
     <>

@@ -491,8 +491,56 @@
       import { v4 as uuidv4 } from 'uuid';
       uuidv4(); // ⇨ '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'
 
---- 
+--- 8-b Apollo Client for the frontend
+      npm install @apollo/server graphql
+      in the main.jsx/index.js file:
 
+        import React from 'react'
+        import ReactDOM from 'react-dom/client'
+        import App from './App'
+
+        import { ApolloClient, ApolloProvider, InMemoryCache, } from '@apollo/client'
+
+        const client = new ApolloClient({
+          uri: 'http://localhost:4000',
+          cache: new InMemoryCache(),
+        })
+
+        ReactDOM.createRoot(document.getElementById('root')).render(
+            <ApolloProvider client={client}>
+                <App />
+            </ApolloProvider>
+        )
+
+      then we can start making queries in App.js
+
+        import { gql, useQuery } from '@apollo/client'
+
+        const ALL_PERSONS = gql`      ****!!!CAREFUL, everything inside of `` has to be correct (curly 
+        query {                           braces, brackets etc) and match same order with the typeDefs in index in the backend
+          allPersons {    
+            name
+            phone
+            id
+          }
+        }
+        `
+
+        const App = () => {
+          const result = useQuery(ALL_PERSONS)
+
+          if (result.loading) {
+            return <div>loading...</div>
+          }
+
+          return (
+            <div>
+              {result.data.allPersons.map(p => p.name).join(', ')}
+            </div>
+          )
+        }
+
+        export default App
 ---
 
 --- 
@@ -769,6 +817,37 @@ A non-serializable value was detected in an action, in the path....
   --- ReferenceError: require is not defined in ES module scope, you can use import instead
         change in package.json file, this line:
         "type":"module" to "type":"commonjs"
+
+  --- Exercise 8, how do I reverse-query a parent object from a child object?
+        type Book {
+          title: String
+          publish: String
+          author: String   <--- how do I query the books the author created?
+        }
+
+        creat a query 'Author' besides 'Books'
+          Query: {
+            bookCount: () => books.length,
+            ...
+          },
+          Author: {
+            bookCount: (root) => books.filter(b => b.author === root.name).length
+          }
+
+  --- Syntax Error: Expected Name, found } / GraphQLError(`Syntax Error: ${description}       
+        This error occurs mostly when there are unclosed curly braces or when some fields are not properly defined while calling the query. Or try to remove the initial curly brackets.
+
+  --- Apollo GraphQL local state getting undefined with useQuery on refreshing app, Ex8.9 front end App.js, 
+        it's weird but after changing the sequeces of the individual useQuery components things worked:
+
+          const authorsQry = useQuery(ALL_AUTHORS)  
+          const booksQry = useQuery(ALL_BOOKS)       <- BAD bookQry.data.allBooks becomes undefined
+
+          const booksQry = useQuery(ALL_BOOKS)       <- GOOD 
+          const authorsQry = useQuery(ALL_AUTHORS)
+
+  ---
+
 
 
 
