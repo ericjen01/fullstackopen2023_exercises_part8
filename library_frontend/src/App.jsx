@@ -1,55 +1,47 @@
-import { useState } from 'react'
 import Books from './components/Books'
 import Authors from './components/Authors'
 import AddBook from './components/AddBook'
-import {gql, useQuery} from '@apollo/client'
+import { useState } from 'react'
+import { useQuery } from '@apollo/client'
+import { ALL_AUTHORS, ALL_BOOKS } from './queries'
+import Notify from './components/Notify'
+import { Container, AppBar, Toolbar, Button } from '@mui/material'
+import { Routes, Route, Link} from 'react-router-dom'
+import Sty from './components/Styling'
 
-
-const ALL_AUTHORS = gql`
-  query{
-    allAuthors{
-      name
-      born
-      bookCount
-      id
-    }
-  }
-`
-const ALL_BOOKS = gql`
-  query{
-    allBooks{
-      title
-      author
-      published
-      id
-      genres
-    }
-  }
-  
-`
 
 function App() {
-  const [page, setPage] = useState('authors')
+  const [msg, setMsg] = useState('')
 
   const booksQry = useQuery(ALL_BOOKS)
   const authorsQry = useQuery(ALL_AUTHORS)
 
-  if(authorsQry.loading){
-    if(authorsQry.loading || booksQry.loading) return <div>loading...</div>
-  } 
+  if(authorsQry.loading || booksQry.loading) return console.log('loading...')
+
+  const notify = (input) => {
+    setMsg(input)
+    setTimeout(() => {
+      setMsg('')
+    }, 30000);
+  }
 
   return (
-    <>
-      <div>
-        <button onClick={()=>setPage('authors')}>authors</button>
-        <button onClick={()=>setPage('books')}>books</button>
-        <button onClick={()=>setPage('addBook')}>add book</button>
-      </div>
-
-      <Authors show={page === 'authors'} authors={authorsQry.data.allAuthors}/>
-      <Books show={page === 'books'} books={booksQry.data.allBooks}/>
-      <AddBook show={page === 'addBook'}/>
-    </>
+    <Container>
+      <AppBar position='sticky'>
+        <Toolbar>
+          <Button {...Sty.appBarBtn} component={Link}to='/'>Authors</Button>
+          <Button {...Sty.appBarBtn} component={Link}to='/books'>Books</Button>
+          <Button {...Sty.appBarBtn} component={Link}to='/addbook'>Add Book</Button>
+        </Toolbar>
+      </AppBar>
+      <Notify msg={msg} />
+      
+      <Routes>
+        <Route path='/' element={<Authors/>} />
+        <Route path='/books' element={<Books/>} />
+        <Route path='/addbook' element={<AddBook setNoti={notify}/>} />
+      </Routes>
+    </Container>
   )
 }
 

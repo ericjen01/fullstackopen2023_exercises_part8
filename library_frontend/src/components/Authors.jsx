@@ -1,27 +1,37 @@
+import { useQuery } from "@apollo/client"
+import { TableCell, TableContainer, TableHead, Table, TableBody, TableRow, Paper } from "@mui/material"
+import { ALL_AUTHORS } from "../queries"
 
-const Authors = ({show, authors}) => {
-  if(!show) return null
-
-
+const Authors = () => {
+  
+  const header = ['Author', 'Year of Birth', 'Number of Published', 'Author ID']
+  const { data:{allAuthors}} = useQuery(ALL_AUTHORS)
+  
   return (
     <>
-      <h2>Authors</h2>
-      <table>
-        <tbody>
-          <tr>
-            <th>1</th>
-            <th>2</th>
-            <th>3</th>
-          </tr>
-          {authors.map(a => (
-            <tr key={a.name}>
-              <th>{a.name}</th>
-              <th>{a.born}</th>
-              <th>{a.bookCount}</th>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <TableContainer  component={Paper} style={{ overflowX: "initial" }}>
+        <Table stickyHeader>
+
+          <TableHead position='sticky'>
+            {header.map(h=>(
+                <TableCell key={h}>{h}</TableCell>
+              ))
+            }
+          </TableHead>
+
+          <TableBody>
+            {allAuthors.map(a => (
+              <TableRow key={a.id}>
+                <TableCell>{a.name}</TableCell>
+                <TableCell>{a.born}</TableCell>
+                <TableCell>{a.bookCount}</TableCell>
+                <TableCell>{a.id}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+
+        </Table>
+      </TableContainer>
     </>
   )
 }

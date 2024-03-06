@@ -12,10 +12,16 @@
   "dependencies": {
     "@apollo/client": "^3.9.5",
     "@apollo/server": "^4.10.0",
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^5.15.11",
+    "@reduxjs/toolkit": "^2.2.1",
     "apollo3-cache-persist": "^0.14.1",
     "graphql": "^16.8.1",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.22.2",
+    "redux": "^5.0.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.56",
