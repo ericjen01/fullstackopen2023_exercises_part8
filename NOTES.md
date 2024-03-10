@@ -200,6 +200,7 @@
     npm install express-async-errors
     npm test -- tests/note_api.test.js
 
+
 --- 4-b Eliminating The Try-Catch
     npm install express-async-errors 
     
@@ -335,6 +336,114 @@
 --- 6-b Redux Toolkit
     npm install @reduxjs/toolkit
 
+    -- create a store file store.jsx in src folder
+
+        import { configureStore } from '@reduxjs/toolkit'
+        import blogReducer from './reducers/blogReducer'
+        import loginReducer from './reducers/loginReducer'
+        ....
+
+        const store = configureStore({
+          reducer: {
+            storedUser: loginReducer, 
+            blogs: blogReducer,
+            users: userReducer,
+            notif: notifReducer,
+            comments: commentReducer
+          }
+        })
+        store.subscribe(() => {console.log(store.getState())})
+
+        export default store
+
+
+    -- Create a reducer file (noteReducer/blockReducer etc...):
+
+        import { createSlice } from "@reduxjs/toolkit";
+
+        const notifSlice = createSlice({
+          name: 'notif',
+          initialState: {
+            message: null,
+            type: null
+          },
+          reducers: {
+            showNotif(state, action){
+              return action.payload
+            },
+
+            hideNotif(){
+              return ''
+            }
+          } 
+        })
+
+        export const {showNotif, hideNotif} = notifSlice.actions
+
+        // AC as Action Creator
+        export const storedUserAC = () => {
+          return dispatchCommand => {
+            const userInLocalStorage = JSON.parse(window.localStorage.getItem('loggedBloglistUser'))
+
+            if(userInLocalStorage){
+              dispatchCommand(initUser(userInLocalStorage))
+              blogService.setToken(userInLocalStorage.token)
+            }
+          }
+        }
+
+        export const initAllUsersAC = () => {
+          return async dispatchCommand => {
+            const users = await userService.get()
+            window.localStorage.setItem('allStoredUsers', JSON.stringify(users))
+
+            dispatchCommand(setUser(users))
+            }
+        }
+
+        export const notifyAC = (message, type, seconds) => {  
+          const notif = {
+            message: message,
+            type: type
+          }
+          console.log('notif: ', notif)
+
+          return dispatchCommand => {
+            dispatchCommand(showNotif(notif))
+            setTimeout(()=>{
+              dispatchCommand(hideNotif())
+            }, seconds*1000)
+          }
+        }
+
+        export default notifSlice.reducer
+
+    -- In App.jsx or places the stored needs to be accessed:
+
+          import { initUser, logoutAC } from './reducers/loginReducer'
+          import { storedUserAC } from './reducers/loginReducer'
+          import { initBlogAC } from './reducers/blogReducer'
+          import { btnStyle } from './components/Styling'
+          import { initAllUsersAC } from './reducers/userReducer'
+          import { initCommentsAC } from './reducers/commentReducer'
+
+          useEffect(() => {
+          dispatch(storedUserAC())
+
+          if(userInLocalStorage){
+            dispatch(initUser(userInLocalStorage)) 
+          } 
+          //dispatch(initUser())
+          dispatch(initBlogAC())
+          dispatch(initCommentsAC())
+          dispatch(initAllUsersAC())
+          }, [])
+
+          const storedUser = [useSelector(state => state.storedUser)]
+          const allUsers = [useSelector(state => state.users)]
+
+
+
 --- 6-c Redux Thunk
     https://fullstackopen.com/en/part6/communicating_with_server_in_a_redux_application
     https://redux.js.org/usage/writing-logic-thunks
@@ -366,18 +475,49 @@
 --- 7-a React Router
     npm install react-router-dom
 
-    import {
-      BrowserRouter as Router,
-      Routes, Route, Link
-    } from 'react-router-dom'
-    
-   return(
-    <Router>
-      <Routes>
-        <Route path="/" element={<AnecdoteList  anecdotes ={anecdotes} />} />
-      </Routes>
-    </Router>
-  )
+    in index/main: 
+
+      import {  BrowserRouter as Router } from 'react-router-dom'
+      ReactDOM.createRoot(document.getElementById('root')).render(<Router><Provider store={store}><App/></Provider></Router>)
+
+    in App:
+
+      import {BrowserRouter as Router, Routes, Route, Link} from 'react-router-dom'
+      import { Grid, Container, Button, AppBar, Toolbar } from '@mui/material'
+
+      return(
+        <Container>
+          <AppBar sx={{borderRadius:1}} position='static'>
+            <Toolbar>
+              <Button color='inherit' component={Link}to='/'>Home</Button>
+              <Button color='inherit' component={Link}to='/blogs'>Blogs</Button>
+              <Button color='inherit' component={Link}to='/users'>Users</Button>
+              {userInLocalStorage 
+                ? <div style={{marginLeft: 'auto', fontFamily:'arial', fontSize:'.75rem'}}>
+                    <div style={{display:'flex', flexDirection:'row'}}>
+                      <span>Logged in as: <br/> '{userInLocalStorage.username}'</span>
+                      <Button color='inherit' {...btnStyle} onClick={handleLogout}>Logout</Button>
+                    </div>
+                  </div>
+
+                : <div style={{marginLeft:'auto', marginRight:'.5rem'}}>
+                    <Button color="inherit" {...btnStyle} component={Link} to="/login"> Login </Button>
+                  </div>
+              }
+            </Toolbar>
+          </AppBar>
+          <Notification/>
+          <Routes>
+            <Route path='/blogs' element={<BlogListing/>} />
+            <Route path='/' element={userInLocalStorage? <Home/> : <LoginForm/>} />
+            <Route path='/login' element={userInLocalStorage? <Home/> : <LoginForm/>} />
+            <Route path='/users' element={userInLocalStorage? <UserListing/> : <LoginForm/>} />
+            <Route path="/users/:id" element={userInLocalStorage? <SingleUserPage/>: <LoginForm/>} />
+            <Route path='/blogs/:id' element={userInLocalStorage? <SingleBlogPage/> : <LoginForm/>}/>
+          </Routes>
+          <Footer/>
+        </Container>
+      )
 
 --- 7-c React Bootstrap
     npm install react-bootstrap
@@ -407,6 +547,13 @@
           </Container>
         )
       }
+
+--- Material UI Datepicker
+
+      npm install @mui/x-date-pickers
+      // Install date library (if not already installed)
+      npm install dayjs
+      npm install dayjs --save
 
 --- 8-a GraphQL is a query language, architecture style, and set of tools to create and manipulate 
           APIs. REST is good for simple data sources where resources are well defined
@@ -846,8 +993,54 @@ A non-serializable value was detected in an action, in the path....
           const booksQry = useQuery(ALL_BOOKS)       <- GOOD 
           const authorsQry = useQuery(ALL_AUTHORS)
 
-  ---
+  --- React does not recognize the X prop on a DOM element ex8.11 UpdateAuthor.jsx
+       1. Check spelling of the props in the styling/props file
+       2. Make sure that the props with spread operator {...Props.X} has a proper import 
+        if the styling/porp file is not imported you may get this error
 
+  --- Warning: validateDOMNesting(...): <th> cannot appear as a child of <thead>.
+        The react render component structure is incorrect/missing proper components.
+        check if any parent component/tag is missing, or child compoent/tag is outside of a parent
+          eg: 
+              <TableHead>
+                <TableCell></TableCell>  <--- wrong. tableRow tag is missing
+              </TableHead>
+
+          fix: 
+
+              <TableHead>
+                <TableRow>
+                  <TableCell></TableCell>  <--- correct
+                </TableRow>
+              </TableHead>
+
+  --- graphql mutation / usemutation sent successfully but doesnt update the page ex 8.9, EditAuthor.jsx
+        
+        very likely the refetchQueries() is missing when sending the mutation so the page doesn't update
+
+        const [editAuthor] = useMutation(
+          EDIT_AUTHOR,{
+            refetchQueries:[{query:ALL....], <---- refetchQueries ensures fetching is done again each mutation
+            onCompleted:(res) => {
+            ...
+
+  --- How to select currently focused element/ pick the current target element when the item is clicked: ex8 frontend EditAuthor.jsx
+
+        method 1. use e.currentTarget when using the event handler:
+
+          <Button onClick={handleOpen}>
+            
+          const handleOpen = (e) => {
+            e.preventDefault()
+            setAnchor(e.currentTarget)
+
+        method 2. use document.activeElement to pick the current item
+
+          <Button onClick={()=>handleOpen(a.id, )}>
+
+          const handleOpen = (id) => {    
+            setAnchor(document.activeElement)
+            setId(id)
 
 
 

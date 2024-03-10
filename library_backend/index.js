@@ -75,7 +75,7 @@ let books = [
     title: 'The Demon ',
     published: 1872,
     author: 'Fyodor Dostoevsky',
-    id: "afa5de04-344d-11e9-a414-719c6709cf3e",
+    id: "afa5de04-674d-11e9-a414-719c6709cf3e",
     genres: ['classic', 'revolution']
   },
 ]
@@ -84,14 +84,14 @@ const typeDefs = `
   type Author {
     name: String!
     id: ID!
-    born: Int
+    born: String
     bookCount: Int
   }
 
   type Book {
     title: String!
     author: String!
-    published: Int!
+    published: String!
     id: ID!
     genres: [String!]!
   }
@@ -107,12 +107,12 @@ const typeDefs = `
     addBook(
       title: String!
       author: String!
-      published: Int!
+      published: String!
       genres: [String!]!
     ): Book
-    modAuthor(
-      name: String!
-      setBornTo: Int!
+    editAuthor(
+      id: String!
+      born: String!
     ): Author,
   }
 `
@@ -150,15 +150,16 @@ const resolvers = {
        return book
     },
 
-    modAuthor: (root, args) => {
-      const target = authors.find(a => a.name === args.name)
+    editAuthor: (root, args) => {
+      const target = authors.find(a => a.id === args.id)
 
       if(!target) { 
+        console.log('null returned as no target')
         return null 
       }else{
-        const updatedAuthor = {...target, born: args.setBorn}
+        const updatedAuthor = {...target, born: args.born}
 
-        authors = authors.map(a => a.name === args.name? updatedAuthor : a)
+        authors = authors.map(a => a.id === args.id? updatedAuthor : a)
         return updatedAuthor
       }
     }

@@ -11,11 +11,12 @@ const Books = () => {
     <>
       <TableContainer component={Paper}>
         <Table>
-
           <TableHead>
-            {header.map(h => (
-              <TableCell key={h}>{h}</TableCell>
-            ))}
+            <TableRow>
+              {header.map(h => ( 
+                <TableCell key={h}>{h}</TableCell>
+              ))}
+            </TableRow>
           </TableHead>
 
           <TableBody>

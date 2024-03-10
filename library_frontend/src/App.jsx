@@ -7,7 +7,7 @@ import { ALL_AUTHORS, ALL_BOOKS } from './queries'
 import Notify from './components/Notify'
 import { Container, AppBar, Toolbar, Button } from '@mui/material'
 import { Routes, Route, Link} from 'react-router-dom'
-import Sty from './components/Styling'
+import Props from './components/Props'
 
 
 function App() {
@@ -22,22 +22,22 @@ function App() {
     setMsg(input)
     setTimeout(() => {
       setMsg('')
-    }, 30000);
+    }, 4000);
   }
 
   return (
     <Container>
       <AppBar position='sticky'>
         <Toolbar>
-          <Button {...Sty.appBarBtn} component={Link}to='/'>Authors</Button>
-          <Button {...Sty.appBarBtn} component={Link}to='/books'>Books</Button>
-          <Button {...Sty.appBarBtn} component={Link}to='/addbook'>Add Book</Button>
+          <Button {...Props.appBarBtn} component={Link}to='/'>Authors</Button>
+          <Button {...Props.appBarBtn} component={Link}to='/books'>Books</Button>
+          <Button {...Props.appBarBtn} component={Link}to='/addbook'>Add Book</Button>
         </Toolbar>
       </AppBar>
       <Notify msg={msg} />
       
       <Routes>
-        <Route path='/' element={<Authors/>} />
+        <Route path='/' element={<Authors setNoti={notify}/>} />
         <Route path='/books' element={<Books/>} />
         <Route path='/addbook' element={<AddBook setNoti={notify}/>} />
       </Routes>
