@@ -6,6 +6,7 @@ const Books = () => {
 
   const header = ['Title', 'Author', 'Publish Year']
   const {data:{allBooks}} = useQuery(ALL_BOOKS) 
+  console.log('allbooks: ', allBooks)
 
   return (
     <>
@@ -23,7 +24,7 @@ const Books = () => {
             {allBooks.map(b => (
               <TableRow key={b.id}>
                 <TableCell>{b.title}</TableCell>
-                <TableCell>{b.author}</TableCell>
+                <TableCell>{b.author.name}</TableCell>
                 <TableCell>{b.published}</TableCell>
               </TableRow>
             ))}

@@ -106,14 +106,161 @@
     app.use(express.static('dist'))
 
 --- 3-c MongoDB
+    go to mongoDB site, register and click connect, select 'connect to your app'
+
+    copy the MONGODB URL 'mongodb+srv://${pr....' <--- add to index.js (see below)
+
+    MONGODB_URI=mongodb+srv://<Username>:<Password>@cluster0.idyl0ve.mongodb.net/<dataBaseName>?retryWrites=true&w=majority
+ 
     npm install mongoose
+    npm install dotenv <--- for process.env.MONGODB_URI
 
-    const mongoose = require('mongoose')
-    const url =`mongodb+srv://${projectName}:${password}... ...`
+    OR: npm install mongoose dot env for both
 
-    mongoose.set('strictQuery',false)
-    mongoose.connect(url)
-    MONGODB_URI=address_here npm run dev
+    create a schema file (eg. author.js, book.js etc) in backend/models folder:
+      "part8/backend/models/author.js"
+
+        /*const mongoose = require('mongoose')
+        const uniqueValidator = require('mongoose-unique-validator')*/
+
+        import { Schema, model } from 'mongoose'
+        import uniqueValidator from 'mongoose-unique-validator'
+
+        const schema = new mongoose.Schema({
+          name: {
+            type: String,
+            required: true,
+            unique: true,
+            minlength: 4
+          },
+          born: {
+            type: Number,
+          },
+        })
+        schema.plugin(uniqueValidator)
+       // module.exports = mongoose.model('Author', schema)
+       export default model('Author', schema)
+
+
+      "part8/backend/models/book.js"
+
+        const mongoose = require('mongoose')
+        const uniqueValidator = require('mongoose-unique-validator')
+        const schema = new mongoose.Schema({
+          title: {
+            type: String,
+            required: true,
+            unique: true,
+            minlength: 5
+          },
+          published: {
+            type: Number,
+          },
+          author: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Author'
+          },
+          genres: [
+            { type: String}
+          ]
+        })
+        schema.plugin(uniqueValidator)
+        module.exports = mongoose.model('Book', schema)
+
+    in index.js:
+
+     /* require('dotenv').config()  <--- for process.env.MONGODB_URI
+      const mongoose = require('mongoose')
+      mongoose.set('strictQuery', false)
+      const Author = require('./models/author')
+      const Book = require('./models/book') */
+
+      import mongoose from 'mongoose'
+      import Author from './models/author'
+      import Book from './models/book'
+      import { GraphQLError } from 'graphql';
+      import "dotenv/config.js";
+
+      const url =`mongodb+srv://${projectName}:${password}... ...`
+      (replace it with const MONGODB_URI = process.env.MONGODB_URI)
+
+      const { startStandaloneServer } = require('@apollo/server/standalone')
+      const { v1: uuid } = require('uuid')
+
+      let books/user etc = [
+        title:....
+      ]
+
+      mongoose.connect(url or MONGDB_URI).then(() => {
+        console.log('connected to MongoDB')
+      })
+      .catch((error) => {
+        console.log('error connection to MongoDB:', error.message)
+      })
+
+          
+      const typeDefs = `
+        type Author {
+            type Book {
+            title: String!
+            published: String!
+            author: String!...}`
+
+      const resolvers = {
+        Query: {
+          bookCount: async () => Book.collection.countDocuments(),
+          authorCount: async () => Author.collection.countDocuments(),
+          
+          allBooks: async (root, args) => {
+            if(args.author && args.genres){
+              return Book.find( {author: args.author, genres:{ $in: args.genres}} )
+            }
+            else if(args.author){
+              return Book.find({ author: args.author })
+            }
+            else{
+              return Book.find({})
+            } 
+
+          allAuthors: async () => 
+            return Author.find({})...
+       },
+
+        Mutation: {
+          addBook: async (root, args) => {
+            const foundAuthor = Author.findOne({ name: args.author })
+            const book = new Book({ ...args, author: foundAuthor })
+            try{
+              await book.save()
+            } catch (error) {
+              throw new GraphQLError('saving book failed', {
+                extensions: {
+                  code: 'BAD_USER_INPUT',
+                  invalidArgs: args,
+                  error
+                }
+              })
+            }
+            return book
+            ....
+      
+
+          
+
+
+
+
+
+
+
+      mongoose.set('strictQuery',false)
+      mongoose.connect(url)
+      MONGODB_URI=address_here npm run dev
+
+
+      const PORT = process.env.PORT
+      app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`)
 
 --- 3-c Database Config into Its Module
     npm install dotenv
@@ -964,6 +1111,9 @@ A non-serializable value was detected in an action, in the path....
   --- ReferenceError: require is not defined in ES module scope, you can use import instead
         change in package.json file, this line:
         "type":"module" to "type":"commonjs"
+        
+        Try the error quick fix "convert to ES5 module"
+        google the 'import' equivalent to 'required'
 
   --- Exercise 8, how do I reverse-query a parent object from a child object?
         type Book {
@@ -1026,6 +1176,8 @@ A non-serializable value was detected in an action, in the path....
 
   --- How to select currently focused element/ pick the current target element when the item is clicked: ex8 frontend EditAuthor.jsx
 
+        https://mui.com/material-ui/react-popover/
+
         method 1. use e.currentTarget when using the event handler:
 
           <Button onClick={handleOpen}>
@@ -1042,10 +1194,401 @@ A non-serializable value was detected in an action, in the path....
             setAnchor(document.activeElement)
             setId(id)
 
+        method 3. use anchor reference
 
+          <Popover 
+            anchorReference="anchorPosition"
+            anchorPosition={{ top: 200, left: 400 }}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'left',
+            }}
+            transformOrigin={{
+              vertical: 'bottom',
+              horizontal: 'left',
+            }}
+          >
+  --- Query was already executed
+        wrap your query within async-await.
 
-      
+          const visitorData = async() => { 
+            return await Visitor.find({});
+          }
 
+  --- How to auto-reload/ refresh automatic update server/backend files in Node.js?
+        $ npm install nodemon -g
+        $ nodemon app.js
+
+        "scripts": {
+          "start": "nodemon app.js"
+        },
+        "devDependencies": {
+          "nodemon": "..."
+        }
+  
+  --- Mongoose objectID ref reference doesn't work/ cannot find mongo ids in the document
+
+      1. use the mongoose populate() function:
+
+          blog.js:
+          ...
+          const blogSchema = new mongoose.Schema({
+          ...
+          user: {
+            type: mongoose.Schema.Types.ObjectId,   <--- 
+            ref: 'User'                             <---
+            },
+          });
+
+        Replace the objectID and ref by whatever elements that macthes your mongoose type:
+
+          user: {
+            userId: String,
+            username: String
+          },
+
+        In index.js replace the 
         
+         return await Book.find({}) , return await Author.find({}) or whatever by:
+
+        return await Book.find({}).populate({
+          path: 'author',     <-- path is the element you want to expand
+          select: 'authors'   <-- authors as the collection name in your mongoonse data tree
+        })
+
+
+      2. if the ObjectId ref absolutely doens't work, just replace with regular attributes to get by
+
+        blog.js:
+          ...
+          const blogSchema = new mongoose.Schema({
+          ...
+          user: {
+            type: mongoose.Schema.Types.ObjectId,   <--- 
+            ref: 'User'                             <---
+          },
+        });
+
+        const Blog = mongoose.model('Blog', blogSchema);
+        module.exports = Blog
+
+      replace the objectID and ref by:
+
+          user: {
+            userId: String,
+            username: String
+          },
+
+  --- How to use find() function on nested object with MongoDB?
+
+      1. instead of using await Book.find({author:{name: root.name}}).countDocuments({})
+        try: await Book.find({'author.name':root.name}).countDocuments()
+
+      2. reference to the nested data tree on mongodb website 
+
+        const cursor = db.collection('inventory').find({
+          'size.uom': 'in'
+        });
+
+        await db.collection('inventory').insertMany([
+          {
+            item: 'journal',
+            qty: 25,
+            size: { h: 14, w: 21, uom: 'cm' },
+            status: 'A'
+          },
+          {
+            item: 'notebook',
+            qty: 50,
+            size: { h: 8.5, w: 11, uom: 'in' },
+            status: 'A'
+          },
+
+  --- how to add/configure a nested query that return an nested object in mongodb? ex 8, backend, index.js
+
+      option 1. use mongo find() and populate() function under Query in index.js:
+
+        return await Book.find({}).populate({
+          path: 'author',     <-- path is the element you want to expand to/add to the type
+          select: 'authors'   <-- authors as the collection name in your mongoonse data tree
+        })
+        
+        under Type in index.js define the type properly:
+
+          type Book {
+          title: String!
+          published: String!
+          author: Author      <--- where Author is a type with matching elements
+          id: ID                   **if it's a list of object make sure use [Author] instead
+          genres: [String]    
+          }
+
+        if needed, update the schema under models> authors.js as well:
+
+            const authorSchema = new mongoose.Schema({
+              ...
+              bookListByAuthor:[{  <-- we use [ ] here because element is a list of books (array)
+                title: String,
+                published: Number,
+                genres: [
+                  { type: String} 
+                ]
+              }]
       
+      option 2. define a new query under a target Type with a find() function
+
+          index.js:
+
+            const typeDefs = `
+              type Author {               <-- type Author
+                name: String!
+                born: String!
+                bookCountByAuthor: Int!   <--- we will create a query for Author below
+                id: ID
+                bookListByAuthor: [BookExtension] <--- we will create a query for Author below
+              }
+            ...
+
+          const resolvers = {
+            Query: {
+                Author: {                             <-- query for Author
+                  bookCountByAuthor: async(root) => 
+                  await Book.find({'author.name': root.name}).countDocuments(), <- author.name is a nested obj
+
+                  bookListByAuthor: async(root) => 
+                  await Book.find({'author.name': root.name})
+                },
+
+            refer to "How to use find() function on nested object with MongoDB?"
+      
+  --- how to use unitcode symbols:
+        in react render, use the String.fromCharCode() function:
+        
+          {String.fromCharCode(9998)}  <---9998 is the symbol code
+
+  --- how to resize a mui button? it seems to have a minimum width/height that can't be overridden
+        You could add max/min width/height style options.
+
+        For instance:
+        <Button style={{maxWidth: '30px', maxHeight: '30px', minWidth: '30px', minHeight: '30px'}}/>
+        In this case button always will look like a square and have a fix size (30px).
+
+  --- Pop(), Push(), Concat() functions doesn't seem to work well for add/remove items from an array.
+      Array elements on display doesn't seem to update when clicking on the button. UseState doesn't update correctly. (ex 8, frontend, addBook):
+
+        - concat() creates a new array with the added item, while keeping the old array unchanged.
+          so when we do setElement(elements.concat(newElement)) it does not add a new item to the old array but returns a new array which, besides containing the items of the old array, also contains the new item.
+
+          const [elements, setElements] = useState([""])
+
+          ...
+          const addGenre = () => {
+            setGenres(genres.concat(" " + genre + ",")) <- set Genres with new array with new genre
+
+          ... <Button onClick={addGenre}>
+
+        - instead of use Pop for element removal, slice() works better:
+
+            const undoGenre = () => {
+              setGenres(genres.slice(0,-1)) <--- removes the last element in an array/object
+            }
+            ...<Button onClick={removeGenre}>
+      
+  --- The type of xx must be Output Type but got xx
+      How do I create a type Mutation on a nested object with GraphQL? / MongoDB 
+      ...Field of xx type xx must have a selection of subfields... when doing mutation
+
+      ex 8 backend index.js
+
+
+        solution 1. Inside your Query type definition, you wrote:
+
+                      fields: Companies
+                      It should be
+
+                      fields: { Companies }
+
+        solution 2. the problem was that I defined a graphql type 
+                    and input type with the same name in my graphql schema file.
+
+            I changed this:
+
+              type InternalAttribute {
+                  name: String
+              }
+
+              input InternalAttribute {
+                  name: String
+              }
+              to this:
+
+              type InternalAttribute {
+                  name: String
+              }
+
+              input InternalAttributeInput {
+                  name: String
+              }
+
+        solution 3: 
+          Change the name of type xx to something else (xx01, xx02...etc) to see which element is wrong
+          Either study the network > localhost > Payload and Preview to see what's the input to match the mutation, And look at the apollo server to see what is required for the mutation input.
+      
+        solution 4:
+          create an input type "input InputAuthorInfo" under typeDefs in index.js:
+              
+            input InputAuthorInfo {
+              id: ID
+              name: String,
+              born: String,
+            }
+
+          and ensure it's used in the query and mutation:
+
+            type Query {
+                ...
+              allBooks(author: InputAuthorInfo, genres: String): [Book!]!
+            }
+
+            type Mutation {
+              addBook(
+                title: String!
+                author: InputAuthorInfo
+                published: String!
+                genres: [String!]!
+              ): Book
+            }
+
+        solution 5:
+          check on mutation query in queries.jsx, mutation must return some fields:
+
+            export const ADD_BOOK = gql`
+              mutation addBook(
+                $title:String!,
+                $name:String, 
+                $born:String, 
+                $id:ID, $published:String!, 
+                $genres:[String!]!
+              ) 
+              { 
+                addBook(
+                  title: $title, 
+                  author: {name:$name, born:$born, id:$id}, 
+                  published:$published, 
+                  genres:$genres
+                )                   <-- return field is missing here
+              }
+            `
+
+          lets simplify the example mutation above:  
+
+            export const SOMENAME = gql`
+              mutation xxx( $var1:String, $var2:String ) {
+                xxx ( var1:$var1, var2:$var2) {  <---- there should be some return field { } like a function
+                  missingField1                  <--- missing fields added
+                  missingField2 ...              
+                }
+              }
+        
+          so the proper mutation query of the example above should be:
+                        
+            export const ADD_BOOK = gql`
+              mutation addBook(
+                $title:String!, 
+                $name: String,
+                $born: String,
+                $id: ID,
+                $published:String!, 
+                $genres:[String!]!
+              ) {
+                  addBook(
+                    title: $title,
+                    author: {
+                      name: $name,
+                      born: $born,
+                      id: $id,
+                    },
+                    published: $published,
+                    genres: $genres,
+                  ) {                             <--- return field
+                      title             
+                      published
+                      author{name born id}        <--- this is a nested field
+                      genres
+                    }
+                }
+            `
+  
+  --- How to prevent mui dialog/popover from closing when click outside of the box/ clickaway?
+
+        try hideBackdrop='true'
+
+  --- Move focus to a text field programmatically on button click/ Javascript setting a textarea with focus() does not work 
+
+        1. <TextField  id="authorField" />
+           
+          const toAddAuthor = () => {
+            document.getElementById("authorField").focus()
+          }
+
+        2. if textfield doesn't work, use setTimeout irrespective of the event.
+
+            setTimeout(function() {
+                document.getElementById("elementId").focus();
+            }, 0);
+
+  --- How to use unicode in react render:
+
+      1. google 'UTF-8 Dingbats' or go to:
+          https://www.amp-what.com/unicode/search/note
+          https://www.w3schools.com/charsets/ref_utf_dingbats.asp
+
+
+      2. U+00F7 will be like <p> {'\u00F7'} </p>
+
+      3. get the html entity: eg, U+26A0 = 9998
+
+        String.fromCharCode(9998)
+
+  --- How to save/add an new object to mongodb (ex 8 backend, index)
+      "xxx.save() is not a fucntion" 
+
+        1. first create model from Schema :
+
+          var UserModel = mongoose.model('User', User);
+
+        2. then create object out of User model
+
+          var user = new UserModel(some_object/some_content/some_body)
+        
+        3. then call
+
+          user.save(function(){})
+          check documentation http://mongoosejs.com/docs/api.html#model_Model-save
+
+        4. note that following may give you a 'xxx.save() is not a fuction' error:
+
+          let user = new UserModel()  <-- created an "mongo user" object with no content
+
+          user = (some_content/some_content/come_body) <-- entire "mongo user" got replaced
+
+          user.save() <--- now you will get an error because it's no longer a "mongo user" with .function path
+
+        5. proper way to avoid error in 4. is:
+
+            let some_content = 'whatever content/object you want to assign'
+
+            let user = new UserModel(some_content) <-- create, then assign content to "mongo user"
+
+            user.save() <-- saves the valid "mongo user"
+
+        6. the following procedure may lead to 'path is required' error:
+
+            let some_content = xx
+
+            let user = new UserModel() 
+
+            user.save(some_content)  <--- mongo may not be able to find the proper paths in the content
+
+          to fix it, follow step 5.
 

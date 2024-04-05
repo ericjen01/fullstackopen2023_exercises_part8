@@ -1,12 +1,17 @@
 
 
-import { Button, Popover, TextField } from "@mui/material"
+import { Popover, TextField } from "@mui/material"
 import { useState } from "react"
 import Props from './Props'
 import { useMutation } from '@apollo/client';
 import { EDIT_AUTHOR, ALL_BOOKS, ALL_AUTHORS } from '../queries';
 
-const EditAuthor = ({open, id, name, closeBox, anchor, setNoti}) => {
+const EditAuthor = ({refAuthor, open, closeBox, anchor, setNoti}) => {
+
+  const author = refAuthor
+  const name = author.name
+  const id = author.id
+
   const currentYear = new Date().getFullYear()
   const [born, setBorn] = useState(NaN)
   const [invalidYear, setInvalidYear] = useState(true)
@@ -51,16 +56,21 @@ const EditAuthor = ({open, id, name, closeBox, anchor, setNoti}) => {
       anchorEl={anchor}
       {...Props.editAuthorPopover}
     >
-      <form style={{...Props.editAuthorForm}} onSubmit={toSubmit}>
+      <form onSubmit={toSubmit}>
         <TextField
           {...Props.editAuthorTxtfield}
           onChange={(e) => onEvent(e)}
           label={invalidYear? `Enter Year (0~${currentYear})` : ''}
           error={invalidYear}
+          InputProps={{
+            endAdornment: 
+            <div {...Props.flexRow}>{!invalidYear && 
+              <button {...Props.smallSqrBtn} disabled={invalidYear? true : false}> Save </button>}
+              <button {...Props.smallSqrBtn} onClick={toClose}> X </button>
+            </div>
+          }}
         />
-        {!invalidYear && 
-        <Button {...Props.submitBtn} sx={{ml:1}} disabled={invalidYear? true : false}> Save </Button>}
-        <Button {...Props.clickBtn} sx={{ml:1}} onClick={toClose}> X </Button>
+  
       </form>
     </Popover>
   )
